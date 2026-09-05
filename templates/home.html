@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% block title %}RailSwap — Home{% endblock %}
+{% block content %}
+
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">🚂</div>
+    <span class="nav-brand">RAILSWAP</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user-pill">
+      📱 {{ phone }}
+    </div>
+    <button class="btn-logout" onclick="logoutUser()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main-content">
+
+  <!-- HERO BANNER -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">🇮🇳 India's #1 Train Ticket Resale Platform</div>
+      <h1>Buy & Sell<br><span>Train Tickets</span><br>with Ease</h1>
+      <p class="hero-sub">Connect with travelers • Save money • Travel smarter</p>
+    </div>
+    <div class="hero-right">🚆</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card stat-clickable" onclick="openModal('all')" title="Click to view all tickets">
+      <div class="stat-icon blue">🎫</div>
+      <div>
+        <div class="stat-num" id="stat-total">—</div>
+        <div class="stat-label">Tickets Listed <span class="stat-hint">↗ View All</span></div>
+      </div>
+    </div>
+    <div class="stat-card stat-clickable" onclick="openModal('available')" title="Click to view available tickets">
+      <div class="stat-icon green">✅</div>
+      <div>
+        <div class="stat-num" id="stat-available">—</div>
+        <div class="stat-label">Available Now <span class="stat-hint">↗ View All</span></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange">🗺️</div>
+      <div>
+        <div class="stat-num" id="stat-routes">—</div>
+        <div class="stat-label">Unique Routes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">All Tickets</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-count" id="modal-count"></div>
+      <div class="modal-body" id="modal-body">
+        <div class="modal-loading">Loading tickets...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-sell" onclick="switchTab('sell')">🎫 Sell Ticket</div>
+    <div class="tab" id="tab-buy" onclick="switchTab('buy')">🔍 Buy Ticket</div>
+  </div>
+
+  <!-- SELL PANEL -->
+  <div class="panel active" id="sell-panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon sell-icon">🎫</div>
+        <div>
+          <h3>List Your Ticket for Sale</h3>
+          <p>Fill in your ticket details so buyers can contact you</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Train Name</label>
+          <input type="text" id="sell-train" placeholder="e.g. Rajdhani Express">
+        </div>
+        <div class="form-group">
+          <label>Passenger Name</label>
+          <input type="text" id="sell-pname" placeholder="Full name as on ticket">
+        </div>
+        <div class="form-group">
+          <label>Passenger Age</label>
+          <input type="number" id="sell-age" placeholder="Age" min="1" max="120">
+        </div>
+        <div class="form-group">
+          <label>Passenger Gender</label>
+          <select id="sell-gender">
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Your Contact Number</label>
+          <input type="tel" id="sell-contact" placeholder="10-digit mobile number" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>From Station</label>
+          <input type="text" id="sell-from" placeholder="Departure station" list="stations-list" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>To Station</label>
+          <input type="text" id="sell-to" placeholder="Destination station" list="stations-list" autocomplete="off">
+        </div>
+        <div class="form-group full">
+          <label>Travel Date</label>
+          <input type="date" id="sell-date">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="sellTicket()" style="max-width:220px;">
+        <span class="btn-text">List Ticket</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <div class="alert alert-success" id="sell-success" style="display:none">
+        ✅ Your ticket has been listed! Buyers can now see and contact you.
+      </div>
+      <div class="alert alert-error" id="sell-error" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- BUY PANEL -->
+  <div class="panel" id="buy-panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon buy-icon">🔍</div>
+        <div>
+          <h3>Search for a Ticket</h3>
+          <p>Enter your travel details to find available tickets</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>From Station</label>
+          <input type="text" id="buy-from" placeholder="Departure station" list="stations-list" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>To Station</label>
+          <input type="text" id="buy-to" placeholder="Destination station" list="stations-list" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Your Age</label>
+          <input type="number" id="buy-age" placeholder="Age" min="1" max="120">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="buy-gender">
+            <option value="">Any</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Travel Date</label>
+          <input type="date" id="buy-date">
+        </div>
+      </div>
+
+      <datalist id="stations-list"></datalist>
+
+      <button class="btn btn-blue" onclick="searchTickets()" style="max-width:220px;">
+        <span class="btn-text">Search Tickets</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <div class="alert alert-error" id="buy-error" style="display:none"></div>
+
+      <div id="results-section" style="display:none">
+        <div class="results-header">
+          <div class="results-count" id="results-count"></div>
+        </div>
+        <div id="results-container"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function logoutUser() {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/login';
+}
+
+function switchTab(tab) {
+  ['sell','buy'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById(t+'-panel').classList.toggle('active', t===tab);
+  });
+  document.getElementById('results-section').style.display = 'none';
+}
+
+async function loadStats() {
+  const res = await fetch('/api/stats');
+  const data = await res.json();
+  animateNum('stat-total', data.total);
+  animateNum('stat-available', data.available);
+  animateNum('stat-routes', data.routes);
+}
+
+function animateNum(id, target) {
+  const el = document.getElementById(id);
+  let n = 0; const step = Math.ceil(target / 18);
+  const t = setInterval(() => {
+    n = Math.min(n + step, target);
+    el.textContent = n;
+    if (n >= target) clearInterval(t);
+  }, 45);
+}
+
+async function sellTicket() {
+  const body = {
+    train: document.getElementById('sell-train').value.trim(),
+    pname: document.getElementById('sell-pname').value.trim(),
+    age: document.getElementById('sell-age').value.trim(),
+    gender: document.getElementById('sell-gender').value.trim(),
+    contact: document.getElementById('sell-contact').value.trim(),
+    from_station: document.getElementById('sell-from').value.trim(),
+    to_station: document.getElementById('sell-to').value.trim(),
+    date: document.getElementById('sell-date').value,
+  };
+  const btn = document.querySelector('#sell-panel .btn');
+  btn.classList.add('loading');
+  document.getElementById('sell-success').style.display = 'none';
+  document.getElementById('sell-error').style.display = 'none';
+
+  const res = await fetch('/api/sell', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  btn.classList.remove('loading');
+
+  if (data.success) {
+    document.getElementById('sell-success').style.display = 'flex';
+    ['sell-train','sell-pname','sell-age','sell-gender','sell-contact','sell-from','sell-to','sell-date'].forEach(id => document.getElementById(id).value = '');
+    loadStats();
+    setTimeout(() => document.getElementById('sell-success').style.display = 'none', 5000);
+  } else {
+    showError('sell-error', data.message);
+  }
+}
+
+async function searchTickets() {
+  const params = new URLSearchParams({
+    from_station: document.getElementById('buy-from').value.trim(),
+    to_station:   document.getElementById('buy-to').value.trim(),
+    age:          document.getElementById('buy-age').value.trim(),
+    gender:       document.getElementById('buy-gender').value.trim(),
+    date:         document.getElementById('buy-date').value,
+  });
+  const btn = document.querySelector('#buy-panel .btn');
+  btn.classList.add('loading');
+  document.getElementById('buy-error').style.display = 'none';
+
+  const res = await fetch('/api/search?' + params);
+  const data = await res.json();
+  btn.classList.remove('loading');
+
+  if (!data.success) { showError('buy-error', data.message); return; }
+
+  const section = document.getElementById('results-section');
+  const container = document.getElementById('results-container');
+  section.style.display = 'block';
+  document.getElementById('results-count').innerHTML =
+    `Showing <strong>${data.count}</strong> ticket(s) matching your search`;
+
+  if (data.count === 0) {
+    container.innerHTML = `
+      <div class="no-results">
+        <div class="no-results-icon">🔍</div>
+        <div>No tickets found for this route and date.</div>
+        <div class="no-results-sub">Try a different date or check back later.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = data.results.map(t => {
+    const isAvailable = t.sold === 'False';
+    return `
+    <div class="ticket-card ${isAvailable ? '' : 'ticket-sold'}">
+      <div class="ticket-left">
+        <div class="ticket-train">
+          🚂 ${t.train}
+        </div>
+        <div class="ticket-route">
+          <span class="station-name">${t.from_station}</span>
+          <div class="route-line"></div>
+          <span class="route-arrow">→</span>
+          <span class="station-name">${t.to_station}</span>
+        </div>
+        <div class="ticket-meta">
+          <span>👤 ${t.pname}</span>
+          <span>🎂 Age ${t.age}</span>
+          <span>⚧ ${t.gender || '-'}</span>
+          <span>📅 ${formatDate(t.date)}</span>
+        </div>
+      </div>
+      <div class="ticket-right">
+        ${isAvailable
+          ? `<div class="badge-available">✓ Available</div>
+             <div class="contact-label">Seller Contact</div>
+             <div class="contact-num">📞 ${t.contact}</div>`
+          : `<div class="badge-sold-res">✕ Already Sold</div>
+             <div class="contact-label" style="margin-top:6px;">Not available</div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+async function loadStations() {
+  const res = await fetch('/api/stations');
+  const data = await res.json();
+  if (!data.success) return;
+  const list = document.getElementById('stations-list');
+  list.innerHTML = data.stations.map(s => `<option value="${s}"></option>`).join('');
+}
+
+loadStats();
+loadStations();
+
+// ─── MODAL ────────────────────────────────────────────────────────────────
+async function openModal(type) {
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const body    = document.getElementById('modal-body');
+  const count   = document.getElementById('modal-count');
+
+  title.textContent = type === 'all' ? '🎫 All Listed Tickets' : '✅ Available Tickets';
+  body.innerHTML = '<div class="modal-loading">⏳ Loading...</div>';
+  count.textContent = '';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  const url = type === 'all' ? '/api/all-tickets' : '/api/available-tickets';
+  const res  = await fetch(url);
+  const data = await res.json();
+
+  if (!data.success) {
+    body.innerHTML = `<div class="modal-empty">❌ ${data.message}</div>`;
+    return;
+  }
+
+  count.textContent = `${data.count} ticket(s) found`;
+
+  if (data.count === 0) {
+    body.innerHTML = `
+      <div class="modal-empty">
+        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+        <div>No tickets found.</div>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = data.tickets.map(t => `
+    <div class="modal-ticket ${t.sold === 'True' ? 'sold' : ''}">
+      <div class="modal-ticket-top">
+        <div class="modal-ticket-train">🚂 ${t.train}</div>
+        <div class="modal-ticket-status ${t.sold === 'True' ? 'badge-sold' : 'badge-available'}">
+          ${t.sold === 'True' ? '✕ Sold' : '✓ Available'}
+        </div>
+      </div>
+      <div class="modal-ticket-route">
+        <span class="station-name">${t.from_station}</span>
+        <span class="modal-route-arrow">──→</span>
+        <span class="station-name">${t.to_station}</span>
+      </div>
+      <div class="modal-ticket-meta">
+        <span>👤 ${t.pname}</span>
+        <span>🎂 Age ${t.age}</span>
+        <span>⚧ ${t.gender || '-'}</span>
+        <span>📅 ${formatDate(t.date)}</span>
+        ${t.sold === 'False' ? `<span class="modal-contact">📞 ${t.contact}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+{% endblock %}

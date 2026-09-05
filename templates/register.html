@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}RailSwap — Register{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <div class="auth-train-icon">🚂</div>
+      <div class="auth-brand">RAILSWAP</div>
+      <div class="auth-tagline">India's Train Ticket Resale Platform</div>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎫</div>
+          <span>Easily sell your unused train tickets</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔍</div>
+          <span>Find tickets for any route & date</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📞</div>
+          <span>Connect directly with sellers</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔒</div>
+          <span>Safe & secure registration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2>Create Account</h2>
+      <p class="auth-subtitle">Join RailSwap and start buying or selling tickets</p>
+
+      <div class="alert alert-error" id="error-msg" style="display:none"></div>
+
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="phone" placeholder="Enter 10-digit mobile number" maxlength="10" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Minimum 4 characters">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="confirm" placeholder="Repeat your password">
+      </div>
+
+      <button class="btn btn-primary" onclick="register()">
+        <span class="btn-text">Create Account</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <div class="divider">or</div>
+      <div class="auth-switch">Already have an account? <a href="/login">Sign in here</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function register() {
+  const phone = document.getElementById('phone').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm').value;
+  const btn = document.querySelector('.btn-primary');
+  btn.classList.add('loading');
+  const res = await fetch('/api/register', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ phone, password, confirm })
+  });
+  const data = await res.json();
+  btn.classList.remove('loading');
+  if (data.success) {
+    btn.classList.add('success');
+    btn.querySelector('.btn-text').textContent = '✓ Account Created!';
+    setTimeout(() => window.location.href = '/home', 900);
+  } else {
+    showError('error-msg', data.message);
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+</script>
+{% endblock %}
